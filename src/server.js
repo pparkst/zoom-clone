@@ -25,6 +25,17 @@ io.on("connection", socket => {
         done();
         socket.to(roomName).emit("welcome");
     });
+
+    socket.on("disconnecting", () => {
+        socket.rooms.forEach((room) => {
+            socket.to(room).emit("bye");
+        });
+    });
+
+    socket.on("new_message", (msg, room, done) => {
+        socket.to(room).emit("new_message", msg);
+        done();
+    })
 });
 
 /* 
