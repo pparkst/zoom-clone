@@ -1,7 +1,8 @@
 import http from "http";
-import { Server } from "socket.io"
-import { instrument } from "@socket.io/admin-ui"
-//import WebSocket from "ws";
+import SocketIO from "socket.io"
+//import { Server } from "socket.io"
+//import { instrument } from "@socket.io/admin-ui"
+
 import express from "express";
 
 const app =  express();
@@ -15,7 +16,11 @@ app.get("/*", (req, res) => res.redirect("/"));
 const handleListen = () => console.log('Listening on http://localhost:3000')
 
 const httpServer = http.createServer(app);
-const io = new Server(httpServer, {
+const io = SocketIO(httpServer);
+httpServer.listen(3000, handleListen);
+
+
+/* const io = new Server(httpServer, {
     cors: {
         origin: ["https://admin.socket.io"],
         credentials: true,
@@ -88,27 +93,5 @@ io.on("connection", socket => {
         io.sockets.emit("room_change", publicRooms());
         done();
     })
-});
-
-/* 
-const wss = new WebSocket.Server({ server });
-const sockets = [];
-wss.on("connection", (socket) => {
-    sockets.push(socket);
-    socket["nickname"] = "Anonymous"
-    console.log("Connected to Browser ✓");
-    socket.on("close", () => console.log("Disconnected from the Browser 𝗫"));
-    socket.on("message", (msg) => {
-        const message = JSON.parse(msg);
-        switch(message.type){
-            case "new_message":
-                sockets.forEach(aSocket => aSocket.send(`${socket['nickname']} : ${message.payload.toString('utf8')}`));
-                break;
-            case "nickname":
-                socket["nickname"] = message.payload;
-                break;
-        }   
-    });
 }); */
 
-httpServer.listen(3000, handleListen);
