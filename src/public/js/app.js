@@ -4,9 +4,17 @@ const welcome = document.getElementById("welcome");
 const form = document.querySelector("form");
 const room = document.getElementById("room");
 
+const btnExit = document.getElementById("btnExit");
+
 room.hidden = true;
 
 let roomName;
+
+function clearRoom(){
+    console.log("clearRoom")
+    const ul = room.querySelector("ul");
+    ul.innerHTML = "";
+}
 
 function addMessage(message){
     const ul = room.querySelector("ul");
@@ -31,9 +39,9 @@ function handleRoomSubmit(event){
 
     const inputRoom = document.querySelector("#roomname");
     const inputNick = document.querySelector("#nickname");
-    socket.emit("enter_room", inputRoom.value, inputNick.value, () => {
+    socket.emit("enter_room", inputRoom.value, inputNick.value, (newCount) => {
         const h3 = room.querySelector("h3");
-        h3.innerText = `Room ${roomName}`
+        h3.innerText = `Room ${roomName} (${newCount})`
         welcome.hidden = true;
         room.hidden = false;
 
@@ -50,11 +58,15 @@ function handleRoomSubmit(event){
 
 form.addEventListener("submit", handleRoomSubmit);
 
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName} (${newCount})`
     addMessage(`${user} joined!`);
 });
 
-socket.on("bye", (left) => {
+socket.on("bye", (left, newCount) => {
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName} (${newCount})`
     addMessage(`${left} left ㅠㅠ`);
 });
 
@@ -63,6 +75,7 @@ socket.on("new_message", (message) => {
 });
 
 socket.on("room_change", (rooms) => {
+    console.log("room_change", rooms);
     const roomList = welcome.querySelector("ul");
     roomList.innerHTML = "";
     if(rooms.length === 0) {
@@ -74,5 +87,12 @@ socket.on("room_change", (rooms) => {
         li.innerText = room;
         roomList.append(li);
     });
-    
 });
+
+btnExit.addEventListener("click", ()=> {
+    clearRoom();
+    socket.emit("leave", roomName, () => {
+        welcome.hidden = false;
+        room.hidden = true;
+    })
+})

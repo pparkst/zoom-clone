@@ -1,5 +1,6 @@
 import http from "http";
-import SocketIO from "socket.io"
+import { Server } from "socket.io"
+import { instrument } from "@socket.io/admin-ui"
 //import WebSocket from "ws";
 import express from "express";
 
@@ -14,7 +15,16 @@ app.get("/*", (req, res) => res.redirect("/"));
 const handleListen = () => console.log('Listening on http://localhost:3000')
 
 const httpServer = http.createServer(app);
-const io = SocketIO(httpServer);
+const io = new Server(httpServer, {
+    cors: {
+        origin: ["https://admin.socket.io"],
+        credentials: true,
+    }
+});
+
+instrument(io, {
+    auth: false
+});
 
 function publicRooms(){
     //const sids = io.sockets.adapter.sids;
@@ -36,8 +46,14 @@ function publicRooms(){
     return publicRooms;
 }
 
+function countRoom(roomName) {
+    return io.sockets.adapter.rooms.get(roomName).size;
+}
+
 io.on("connection", socket => {
     socket["nickname"] = "Anonymous";
+
+    socket.emit("room_change", publicRooms());
 
     socket.onAny((event) => {
         console.log(io.sockets.adapter);
@@ -46,14 +62,14 @@ io.on("connection", socket => {
     socket.on("enter_room", (roomName, nickName, done) => {
         socket.join(roomName);
         socket["nickname"] = nickName;
-        done();
-        socket.to(roomName).emit("welcome", socket.nickname);
+        done(countRoom(roomName));
+        socket.to(roomName).emit("welcome", socket.nickname, countRoom(roomName));
         io.sockets.emit("room_change", publicRooms());
     });
 
     socket.on("disconnecting", () => {
         socket.rooms.forEach((room) => {
-            socket.to(room).emit("bye", socket.nickname);
+            socket.to(room).emit("bye", socket.nickname, countRoom(room) - 1);
         });
     });
 
@@ -64,6 +80,14 @@ io.on("connection", socket => {
         socket.to(room).emit("new_message", `${socket.nickname} : ${msg}`);
         done();
     });
+    socket.on("leave", (roomName, done) => {
+        socket.to(roomName).emit("bye", socket.nickname, countRoom(roomName) - 1);
+        console.log(socket.nickname);
+        console.log(countRoom(roomName))
+        socket.leave(roomName);
+        io.sockets.emit("room_change", publicRooms());
+        done();
+    })
 });
 
 /* 
