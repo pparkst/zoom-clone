@@ -13,6 +13,7 @@ let muted = false;
 let cameraOff = false;
 let roomName = "";
 let myPeerConnection;
+let myDataChannel;
 
 async function getCameras() {
     try{
@@ -136,6 +137,10 @@ welcomeForm.addEventListener("submit", handleWelcomeSubmit);
 // Socket COde
 
 socket.on("welcome", async () => {
+    myDataChannel = myPeerConnection.createDataChannel("chat");
+    myDataChannel.addEventListener("message", console.log);
+    console.log("made data channel");
+
     const offer = await myPeerConnection.createOffer();
     myPeerConnection.setLocalDescription(offer);
     socket.emit("offer", offer, roomName);
@@ -143,7 +148,11 @@ socket.on("welcome", async () => {
 });
 
 socket.on("offer", async (offer) => {
-    console.log("received the offer")
+    myPeerConnection.addEventListener("datachannel", (event) => {
+        myDataChannel = event.channel;
+        myDataChannel.addEventListener("message", console.log);
+    });
+    console.log("received the offer");
     myPeerConnection.setRemoteDescription(offer);
     const answer = await myPeerConnection.createAnswer();
     myPeerConnection.setLocalDescription(answer);
@@ -165,7 +174,20 @@ socket.on("ice", (ice) => {
 //RTC COde
 
 function makeConnection() {
-    myPeerConnection = new RTCPeerConnection();
+    myPeerConnection = new RTCPeerConnection({
+        iceServers: [
+            {
+                //STUN Server 공용IP를 찾아주는 작업
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ],
+            },
+        ],
+    });
     myPeerConnection.addEventListener("icecandidate", handleIce);
     //safari no support
     //myPeerConnection.addEventListener("addstream", handleAddStream);
@@ -173,9 +195,7 @@ function makeConnection() {
     //this only safari
     myPeerConnection.addEventListener("track", handleAddStream);
 
-    myStream
-        .getTracks()
-        .forEach((track) => myPeerConnection.addTrack(track, myStream));
+    myStream.getTracks().forEach((track) => myPeerConnection.addTrack(track, myStream));
 }
 
 function handleIce(data) {
