@@ -23,7 +23,10 @@ html(lang="en")
                         select#cameras
                     div#peerStream(style="width:40%; display:inline; margin-left:10%")
                         video#peersFace(autoplay,playsinline, width="400",height="400")
-
+                    ul
+                    form#msg
+                        input(placeholder="message", required, type="text")
+                        button Send
     
         //- main
         //-     div#welcome
