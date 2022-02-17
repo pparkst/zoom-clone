@@ -7,27 +7,29 @@ html(lang="en")
         title Pp Zoom
         link(rel="stylesheet", href="https://unpkg.com/mvp.css")
     body
-        header
+        header(style="height:45px;")
             h1 Ppark
         main
-            div
+            div(style="margin-top:-45px;")
                 div#welcome
                     form(action="")
                         input(placeholder="room name", required, type="text")
                         button Enter Room
                 div#call(style="width:100%; text-align:center")
-                    div#myStream(style="width:40%; display:inline; float:left")
-                        video#myFace(autoplay,playsinline, width="400",height="400")
-                        button#mute Mute
-                        button#camera Turn Camera Off
-                        select#cameras
-                    div#peerStream(style="width:40%; display:inline; margin-left:10%")
-                        video#peersFace(autoplay,playsinline, width="400",height="400")
-                    ul
-                    form#msg
-                        input(placeholder="message", required, type="text")
-                        button Send
-    
+                    div(style="margin-bottom:125px;")
+                        div#myStream(style="width:40%; display:inline; float:left")
+                            video#myFace(autoplay,playsinline, width="400",height="400")
+                            select#cameras(style="margin-left:45px")
+                            button#mute(style="margin-right:20px") Mute
+                            button#camera Turn Camera Off
+                        div#peerStream(style="width:40%; display:inline; margin-left:10%")
+                            video#peersFace(autoplay,playsinline, width="400",height="400")
+                    div(style="margin:auto;text-align:center")
+                        form#msg(style="display:inline-block; width:100%; margin-left:-200px; height:210px; left:0")
+                            ul
+                            input(placeholder="message", required, type="text", style="width:45%; position:absolute; bottom:3px;")
+                            button(style="position:absolute; bottom:10px; right:400px;") Send
+
         //- main
         //-     div#welcome
         //-         form
